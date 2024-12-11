@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "sistema-de-biblioteca-26021"
-  }
+    "default": "sistema-de-biblioteca-26021",
+    "sistema de biblioteca": "sistema-de-biblioteca-26021"
+  },
+  "targets": {},
+  "etags": {}
 }

@@ -1,12 +1,12 @@
-import './App.css'
-import { PrestamosRoutes } from './routes'
+import './App.css';
+import { PrestamosRoutes } from './routes';  // Importamos PrestamosRoutes correctamente
 
 function App() {
   return (
     <div className="App">
-      <PrestamosRoutes />
+      <PrestamosRoutes />  {/* Usamos el componente PrestamosRoutes */}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

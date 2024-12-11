@@ -1,14 +1,6 @@
-
-import { initializeApp } from "firebase/app";
-
-
-
-import { getDatabase } from "firebase/database"; // Si usas Realtime Database
-import { getFirestore } from "firebase/firestore"; // Si usas Firestore
-import { getAuth } from "firebase/auth"; // Si necesitas autenticación
-import { getAnalytics } from "firebase/analytics"; // Si necesitas Analytics
-
-
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore"; // Usando Firestore
+import { getAuth } from "firebase/auth"; // Autenticación
 
 // Tu configuración de Firebase (usa los valores de tu proyecto)
 const firebaseConfig = {
@@ -21,18 +13,14 @@ const firebaseConfig = {
   measurementId: "G-KVK04LPQYR"
 };
 
-// Inicializar Firebase
-const app = initializeApp(firebaseConfig);
+// Inicializar Firebase solo si no ha sido inicializado
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Si necesitas usar Analytics (opcional)
-const analytics = getAnalytics(app);
+// Inicializar Firestore
+const db = getFirestore(app); // Para Firestore
 
-// Inicializar la base de datos (elige Realtime Database o Firestore)
-const database = getDatabase(app); // Para Realtime Database
-// const db = getFirestore(app); // Para Firestore
-
-// Inicializar autenticación (si la necesitas)
+// Inicializar autenticación
 const auth = getAuth(app);
 
 // Exportar lo que necesites
-export { app, database, auth, analytics };
+export { app, db, auth }; // Exportando Firestore y Auth
