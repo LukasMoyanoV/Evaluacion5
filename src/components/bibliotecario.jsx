@@ -28,6 +28,7 @@ const Bibliotecario = () => {
         console.error('Error al cerrar sesión:', error);
       });
   };
+  
 
   return (
     <>

@@ -1,16 +1,17 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
-import 'bootstrap/dist/css/bootstrap.min.css'; // Asegúrate de tener Bootstrap importado
-import { useNavigate } from 'react-router-dom'; // Importa useNavigate para redireccionar
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { useNavigate } from 'react-router-dom';
 
-export const PrestamosPendientes = () => {
+const PrestamosPendientes = () => {
   const [prestamos, setPrestamos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // Inicializa useNavigate
+  const navigate = useNavigate();
 
+  // Función para cargar los préstamos pendientes
   useEffect(() => {
     const cargarPrestamos = async () => {
       try {
@@ -20,23 +21,21 @@ export const PrestamosPendientes = () => {
 
         if (snapshot.empty) {
           console.log("No hay préstamos pendientes.");
-          setPrestamos([]); // No hay préstamos en la base de datos
+          setPrestamos([]);
         } else {
+          // Mapeo de los documentos para obtener datos adicionales
           const prestamosList = await Promise.all(
             snapshot.docs.map(async (docSnap) => {
               const prestamoData = docSnap.data();
-
-              // Obtener datos del libro
-              const libroRef = doc(db, 'libros', prestamoData.libro_id); // Referencia a la colección 'libros'
+              const libroRef = doc(db, 'libros', prestamoData.libro_id);
               const libroSnap = await getDoc(libroRef);
               const libroTitulo = libroSnap.exists() ? libroSnap.data().titulo : 'Título no disponible';
 
-              // Obtener datos de la persona
-              const personaRef = doc(db, 'users', prestamoData.persona_id); // Referencia a la colección 'users'
+              const personaRef = doc(db, 'users', prestamoData.persona_id);
               const personaSnap = await getDoc(personaRef);
               const personaNombre = personaSnap.exists() ? personaSnap.data().nombre : 'Nombre no disponible';
 
-              // Comprobación de los campos de fecha para evitar errores
+              // Conversión de fechas de Firestore (formato de tiempo UNIX)
               const fechaPrestamo = prestamoData.fecha_prestamo ? new Date(prestamoData.fecha_prestamo.seconds * 1000).toLocaleDateString() : 'Fecha no disponible';
               const fechaDevolucion = prestamoData.fecha_devolucion ? new Date(prestamoData.fecha_devolucion.seconds * 1000).toLocaleDateString() : 'Fecha no disponible';
 
@@ -46,83 +45,82 @@ export const PrestamosPendientes = () => {
                 persona: personaNombre,
                 fecha_prestamo: fechaPrestamo,
                 fecha_devolucion: fechaDevolucion,
-                libro_id: prestamoData.libro_id, // Añadir el ID del libro para la devolución
+                libro_id: prestamoData.libro_id,
               };
             })
           );
 
-          setPrestamos(prestamosList); // Guardar los préstamos obtenidos
+          setPrestamos(prestamosList); // Actualiza el estado de los préstamos
         }
       } catch (error) {
         console.error("Error al cargar los préstamos pendientes:", error);
-        setPrestamos([]); // En caso de error, no mostrar préstamos
+        setPrestamos([]); // Si ocurre un error, dejamos el estado en vacío
       } finally {
-        setLoading(false); // Finalizar la carga de datos
+        setLoading(false); // Termina la carga de los datos
       }
     };
 
-    cargarPrestamos(); // Llamada a la función para cargar los préstamos
-  }, []);
+    cargarPrestamos();
+  }, []); // Se ejecuta solo una vez cuando se monta el componente
 
+  // Función para devolver un libro
   const devolverLibro = async (prestamoId, libroId) => {
     try {
       const db = getFirestore();
-
-      // Eliminar el préstamo de la base de datos
       const prestamoRef = doc(db, 'prestamos', prestamoId);
-      await deleteDoc(prestamoRef); // Eliminar documento de la colección 'prestamos'
+      await deleteDoc(prestamoRef); // Elimina el préstamo de la base de datos
 
-      // Marcar el libro como disponible
       const libroRef = doc(db, 'libros', libroId);
-      await updateDoc(libroRef, { disponible: true });
+      await updateDoc(libroRef, { disponible: true }); // Marca el libro como disponible
 
-      // Eliminar el préstamo de la lista en la UI
+      // Elimina el préstamo de la lista mostrada en la UI
       const nuevosPrestamos = prestamos.filter(prestamo => prestamo.id !== prestamoId);
-      setPrestamos(nuevosPrestamos); // Actualizar la lista de préstamos
+      setPrestamos(nuevosPrestamos);
 
     } catch (error) {
       console.error("Error al devolver el libro:", error);
     }
   };
 
+  // Función para volver a la página del bibliotecario
   const handleVolver = () => {
-    navigate('/bibliotecario'); // Redirige a la página de bibliotecario
+    navigate('/bibliotecario');
   };
 
+  // Cargando datos
   if (loading) {
-    return <div>Cargando préstamos pendientes...</div>; // Mostrar mensaje mientras cargan los datos
+    return <div>Cargando préstamos pendientes...</div>;
   }
 
+  // Si no hay préstamos pendientes
   if (prestamos.length === 0) {
-    return <div>No hay préstamos pendientes.</div>; // Si no hay préstamos, mostrar mensaje correspondiente
+    return <div>No hay préstamos pendientes.</div>;
   }
 
   return (
     <div
       className="d-flex align-items-center justify-content-center min-vh-100"
       style={{
-        backgroundImage: 'url(/images/colegiopioneros.jpg)', // Ruta a tu imagen
-        backgroundSize: 'cover', // Asegura que la imagen cubra toda la pantalla
-        backgroundPosition: 'center', // Centra la imagen
+        backgroundImage: 'url(/images/colegiopioneros.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     >
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-12 col-md-8 col-lg-6">
-            {/* Banner de Colegio Pioneros */}
             <div className="bg-dark text-white text-center py-4 mb-4 rounded-3">
               <h1 className="fw-bold">Colegio Pioneros</h1>
               <p className="lead">Préstamos Pendientes</p>
             </div>
 
-            {/* Tabla de Préstamos Pendientes */}
             <div className="card shadow-lg border-0 rounded-4">
               <div className="card-body p-4">
                 <DataTable value={prestamos} responsiveLayout="scroll">
-                  <Column field="libro" header="Libro"></Column>
-                  <Column field="persona" header="Persona"></Column>
-                  <Column field="fecha_prestamo" header="Fecha de Préstamo"></Column>
-                  <Column field="fecha_devolucion" header="Fecha de Devolución"></Column>
+                  <Column field="libro" header="Libro" />
+                  <Column field="persona" header="Persona" />
+                  <Column field="fecha_prestamo" header="Fecha de Préstamo" />
+                  <Column field="fecha_devolucion" header="Fecha de Devolución" />
                   <Column
                     header="Acciones"
                     body={(rowData) => (
@@ -133,12 +131,11 @@ export const PrestamosPendientes = () => {
                         onClick={() => devolverLibro(rowData.id, rowData.libro_id)}
                       />
                     )}
-                  ></Column>
+                  />
                 </DataTable>
               </div>
             </div>
 
-            {/* Botón para volver a la página de bibliotecario */}
             <div className="text-center mt-4">
               <Button
                 label="Volver a Bibliotecario"
@@ -154,3 +151,5 @@ export const PrestamosPendientes = () => {
   );
 };
 
+// Exportación predeterminada
+export default PrestamosPendientes;

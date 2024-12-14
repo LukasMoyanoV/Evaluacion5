@@ -6,9 +6,9 @@ import { createRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDoc, collection, getDocs, setDoc, updateDoc } from 'firebase/firestore';
-import 'bootstrap/dist/css/bootstrap.min.css'; // Importa Bootstrap
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-export const NuevoPrestamo = function() {
+export const NuevoPrestamo = function () {
   const [personas, setPersonas] = useState([]);
   const [libros, setLibros] = useState([]);
   const [libro, setLibro] = useState(null);
@@ -18,7 +18,6 @@ export const NuevoPrestamo = function() {
   const [isBibliotecario, setIsBibliotecario] = useState(false);
 
   useEffect(() => {
-    // Verificar rol del usuario autenticado
     const checkRole = async () => {
       const auth = getAuth();
       const user = auth.currentUser;
@@ -42,9 +41,6 @@ export const NuevoPrestamo = function() {
       }
     };
 
-    checkRole();
-
-    // Obtener personas (usuarios)
     const getPersonas = async () => {
       try {
         const db = getFirestore();
@@ -56,21 +52,22 @@ export const NuevoPrestamo = function() {
         } else {
           const usersList = snapshot.docs.map(doc => {
             const userData = doc.data();
-            return { 
+            return {
               nombre: userData.nombre || 'Nombre no disponible',
               uid: doc.id,
               email: userData.email || 'Email no disponible',
-              identificacion: userData.identificacion || 'ID no disponible'
+              identificacion: userData.identificacion || 'ID no disponible',
             };
           });
           setPersonas(usersList);
         }
       } catch (e) {
-        console.error("Error al obtener personas:", e);
+        console.error('Error al obtener personas:', e);
         toast.current.show({ severity: 'error', summary: 'Error al obtener personas', detail: e.message });
       }
     };
 
+    checkRole();
     getPersonas();
   }, [navigate]);
 
@@ -88,7 +85,7 @@ export const NuevoPrestamo = function() {
     try {
       const db = getFirestore();
 
-      const libroId = libro.id; 
+      const libroId = libro.id;
       if (!libroId) {
         toast.current.show({ severity: 'error', summary: 'Error', detail: 'ID del libro no encontrado.' });
         return;
@@ -106,7 +103,7 @@ export const NuevoPrestamo = function() {
       await updateDoc(libroRef, { disponible: false });
 
       toast.current.show({ severity: 'success', summary: 'Préstamo realizado', detail: `Se prestó el libro ${libro.titulo} a ${persona.nombre} exitosamente` });
-      navigate('/prestamospendientes'); // Redirige a la página de préstamos pendientes
+      navigate('/prestamospendientes');
     } catch (e) {
       console.log(e);
       toast.current.show({ severity: 'error', summary: 'Error al realizar préstamo', detail: e.message });
@@ -120,35 +117,28 @@ export const NuevoPrestamo = function() {
 
     const librosList = snapshot.docs.map(doc => ({
       ...doc.data(),
-      id: doc.id
+      id: doc.id,
     }));
 
     setLibros(librosList.filter(libro => libro.titulo.toLowerCase().includes(event.query.toLowerCase())));
   };
 
-  const defaultWidth = '100%'; // Hacer los campos del formulario más responsivos
-
   if (!isBibliotecario) return null;
 
   return (
-    <div
-      className="d-flex align-items-center justify-content-center min-vh-100"
+    <div className="d-flex align-items-center justify-content-center min-vh-100"
       style={{
-        backgroundImage: 'url(/images/colegiopioneros.jpg)', // Ruta a tu imagen de fondo
-        backgroundSize: 'cover', // Asegura que la imagen cubra toda la pantalla
-        backgroundPosition: 'center', // Centra la imagen
-      }}
-    >
+        backgroundImage: 'url(/images/colegiopioneros.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}>
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-12 col-md-6 col-lg-4">
-            {/* Banner de Colegio Pioneros */}
             <div className="bg-dark text-white text-center py-4 mb-4 rounded-3">
               <h1 className="fw-bold">Colegio Pioneros</h1>
               <p className="lead">Nuevo Préstamo de Libro</p>
             </div>
-
-            {/* Formulario de préstamo */}
             <div className="card shadow-lg border-0 rounded-4">
               <div className="card-body p-4">
                 <div className="mb-3">
@@ -161,20 +151,18 @@ export const NuevoPrestamo = function() {
                     className="form-control w-100"
                   />
                 </div>
-
                 <div className="mb-3">
-                  <AutoComplete 
-                    value={libro} 
-                    inputStyle={{ textAlign: 'center', width: '100%' }} 
-                    placeholder="Seleccione un libro" 
-                    suggestions={libros} 
-                    completeMethod={buscarLibro} 
-                    field="titulo" 
-                    onChange={(e) => setLibro(e.value)} 
+                  <AutoComplete
+                    value={libro}
+                    inputStyle={{ textAlign: 'center', width: '100%' }}
+                    placeholder="Seleccione un libro"
+                    suggestions={libros}
+                    completeMethod={buscarLibro}
+                    field="titulo"
+                    onChange={(e) => setLibro(e.value)}
                     className="form-control w-100"
                   />
                 </div>
-
                 {libro && (
                   <div className="mb-3">
                     <div><strong>Título:</strong> {libro.titulo || 'Título no disponible'}</div>
@@ -182,23 +170,10 @@ export const NuevoPrestamo = function() {
                     <div><strong>Disponible:</strong> {libro.disponible ? 'Sí' : 'No'}</div>
                   </div>
                 )}
-
-                <Button 
-                  label="Prestar" 
-                  className="p-button-primary w-100 py-2 mt-3" 
-                  onClick={prestar}
-                />
-
-                {/* Botón para volver a la página del bibliotecario */}
-                <Button 
-                  label="Volver al bibliotecario"
-                  className="p-button-secondary w-100 py-2 mt-3"
-                  onClick={() => navigate('/bibliotecario')} // Redirige al bibliotecario
-                />
+                <Button label="Prestar" className="p-button-primary w-100 py-2 mt-3" onClick={prestar} />
+                <Button label="Volver al bibliotecario" className="p-button-secondary w-100 py-2 mt-3" onClick={() => navigate('/bibliotecario')} />
               </div>
             </div>
-
-            {/* Toast para mostrar mensajes */}
             <Toast ref={toast} />
           </div>
         </div>
